@@ -3,47 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Menú GOZE Delivery</title>
+    <title>GOZE Delivery</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         let cart = {};
         const deliveryFee = 8.00;
 
+        function navigateTo(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+
         function updateQuantity(id, name, price, change) {
-            if (!cart[id]) {
-                cart[id] = { name: name, price: price, qty: 0 };
-            }
-            cart[id].qty += change;
-            if (cart[id].qty < 0) cart[id].qty = 0;
-            
+            if (!cart[id]) cart[id] = { name, price, qty: 0 };
+            cart[id].qty = Math.max(0, cart[id].qty + change);
             document.getElementById(`qty-${id}`).innerText = cart[id].qty;
             updateCartUI();
         }
 
         function updateCartUI() {
             let subtotal = 0;
-            let cartItemsHTML = "";
-            
+            let items = "";
             for (let id in cart) {
                 if (cart[id].qty > 0) {
                     subtotal += cart[id].price * cart[id].qty;
-                    cartItemsHTML += `<li>${cart[id].name} x${cart[id].qty} - $${(cart[id].price * cart[id].qty).toFixed(2)}</li>`;
+                    items += `<li>${cart[id].name} x${cart[id].qty} - $${(cart[id].price * cart[id].qty).toFixed(2)}</li>`;
                 }
             }
-            
-            const total = subtotal + deliveryFee;
-            document.getElementById('cart-items').innerHTML = cartItemsHTML || "<li>El carrito está vacío</li>";
+            document.getElementById('cart-list').innerHTML = items || "<li>El carrito está vacío</li>";
             document.getElementById('subtotal').innerText = subtotal.toFixed(2);
-            document.getElementById('total').innerText = total.toFixed(2);
+            document.getElementById('total').innerText = (subtotal + deliveryFee).toFixed(2);
         }
 
         function confirmOrder() {
             const calle = document.getElementById('calle').value;
-            const numero = document.getElementById('numero').value;
-            const colonia = document.getElementById('colonia').value;
+            const num = document.getElementById('numero').value;
+            const col = document.getElementById('colonia').value;
             const pago = document.getElementById('metodoPago').value;
 
-            if (!calle || !numero || !colonia) {
+            if (!calle || !num || !col) {
                 alert("Por favor, llena los datos de entrega.");
                 return;
             }
@@ -52,76 +51,66 @@
             let subtotal = 0;
             for (let id in cart) {
                 if (cart[id].qty > 0) {
-                    message += `- ${cart[id].name} x${cart[id].qty}: $${(cart[id].price * cart[id].qty).toFixed(2)}\n`;
+                    message += `- ${cart[id].name} x${cart[id].qty}\n`;
                     subtotal += cart[id].price * cart[id].qty;
                 }
             }
-            
-            message += `\nEnvío: $${deliveryFee.toFixed(2)}`;
-            message += `\nTOTAL: $${(subtotal + deliveryFee).toFixed(2)}`;
-            message += `\n\n--- Datos de entrega ---`;
-            message += `\nCalle: ${calle}`;
-            message += `\nNúmero: ${numero}`;
-            message += `\nColonia: ${colonia}`;
-            message += `\nMétodo de pago: ${pago}`;
+            message += `\nEnvío: $8.00\nTOTAL: $${(subtotal + deliveryFee).toFixed(2)}`;
+            message += `\n\n--- Entrega ---\nCalle: ${calle}\nNum: ${num}\nCol: ${col}\nPago: ${pago}`;
 
-            const url = `https://wa.me/523333580863?text=${encodeURIComponent(message)}`;
-            window.open(url, '_blank');
+            window.open(`https://wa.me/523333580863?text=${encodeURIComponent(message)}`, '_blank');
         }
     </script>
 </head>
-<body class="bg-gray-100 text-gray-900 pb-20">
+<body class="bg-gray-100 pb-20">
 
+    <!-- Header -->
     <header class="bg-black text-white p-6 text-center shadow-lg">
-        <h1 class="text-3xl font-bold uppercase tracking-wider">GOZE Delivery</h1>
+        <h1 class="text-3xl font-bold uppercase">GOZE Delivery</h1>
     </header>
 
-    <main class="max-w-2xl mx-auto p-4 space-y-6">
-        
-        <!-- Categoría: Cervezas (Acordeón) -->
-        <section class="bg-white p-6 rounded-2xl shadow-sm">
-            <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-yellow-600">🍺 Cervezas</h2>
-            
-            <details class="mb-4 bg-gray-50 p-3 rounded-lg" open>
-                <summary class="font-bold cursor-pointer text-yellow-800">🏢 Grupo Modelo</summary>
-                <div class="mt-3 space-y-3">
-                    <!-- Producto: Corona Extra Clara -->
-                    <div class="flex items-center justify-between p-2 bg-white rounded border border-gray-100">
-                        <div>
-                            <h4 class="text-sm font-semibold">Corona Extra Clara</h4>
-                            <p class="text-xs text-gray-500">$18.00</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="updateQuantity('corona-extra', 'Corona Extra Clara', 18.00, -1)" class="bg-gray-200 px-2 rounded">-</button>
-                            <span id="qty-corona-extra">0</span>
-                            <button onclick="updateQuantity('corona-extra', 'Corona Extra Clara', 18.00, 1)" class="bg-yellow-500 text-white px-2 rounded">+</button>
-                        </div>
-                    </div>
-                    <!-- Producto: Victoria -->
-                    <div class="flex items-center justify-between p-2 bg-white rounded border border-gray-100">
-                        <div>
-                            <h4 class="text-sm font-semibold">Victoria</h4>
-                            <p class="text-xs text-gray-500">$18.00</p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <button onclick="updateQuantity('victoria', 'Victoria', 18.00, -1)" class="bg-gray-200 px-2 rounded">-</button>
-                            <span id="qty-victoria">0</span>
-                            <button onclick="updateQuantity('victoria', 'Victoria', 18.00, 1)" class="bg-yellow-500 text-white px-2 rounded">+</button>
-                        </div>
-                    </div>
+    <!-- Views -->
+    <main class="max-w-2xl mx-auto p-4">
+
+        <!-- Vista Principal -->
+        <div id="view-home" class="view space-y-4">
+            <button onclick="navigateTo('view-cervezas')" class="w-full bg-white p-6 rounded-2xl shadow font-bold text-lg">🍺 Cervezas</button>
+            <button onclick="alert('Próximamente...')" class="w-full bg-white p-6 rounded-2xl shadow font-bold text-lg">🍷 Vinos y Licores</button>
+        </div>
+
+        <!-- Vista Cervezas -->
+        <div id="view-cervezas" class="view hidden space-y-4">
+            <button onclick="navigateTo('view-home')" class="text-blue-600 mb-4 font-bold">← Atrás</button>
+            <button onclick="navigateTo('view-modelo')" class="w-full bg-white p-6 rounded-2xl shadow font-bold text-lg">🏢 Grupo Modelo</button>
+            <button onclick="alert('Próximamente...')" class="w-full bg-white p-6 rounded-2xl shadow font-bold text-lg"> Heineken</button>
+        </div>
+
+        <!-- Vista Modelo -->
+        <div id="view-modelo" class="view hidden space-y-4">
+            <button onclick="navigateTo('view-cervezas')" class="text-blue-600 mb-4 font-bold">← Atrás</button>
+            <button onclick="navigateTo('view-medias')" class="w-full bg-white p-4 rounded-xl shadow">Medias 355ml</button>
+            <button onclick="alert('Próximamente')" class="w-full bg-white p-4 rounded-xl shadow">Ampolletas 210ml</button>
+        </div>
+
+        <!-- Vista Medias (Ejemplo de productos) -->
+        <div id="view-medias" class="view hidden space-y-4">
+            <button onclick="navigateTo('view-modelo')" class="text-blue-600 mb-4 font-bold">← Atrás</button>
+            <div class="flex justify-between items-center p-3 bg-white rounded-lg shadow">
+                <span>Corona Extra</span>
+                <div class="flex items-center gap-3">
+                    <button onclick="updateQuantity('corona', 'Corona', 18, -1)" class="bg-gray-200 px-3 rounded">-</button>
+                    <span id="qty-corona">0</span>
+                    <button onclick="updateQuantity('corona', 'Corona', 18, 1)" class="bg-yellow-500 text-white px-3 rounded">+</button>
                 </div>
-            </details>
-        </section>
+            </div>
+        </div>
 
-        <!-- Formulario de Pedido -->
-        <section class="bg-white p-6 rounded-2xl shadow-lg border-2 border-green-100">
-            <h3 class="text-lg font-bold mb-4">🛒 Tu Pedido</h3>
-            <ul id="cart-items" class="text-sm mb-4 space-y-1"><li>El carrito está vacío</li></ul>
-            <p class="text-sm">Subtotal: $<span id="subtotal">0.00</span></p>
-            <p class="text-sm font-bold">Envío: $8.00</p>
-            <p class="text-lg font-bold text-green-600 mb-4">Total: $<span id="total">0.00</span></p>
-
-            <div class="space-y-3">
+        <!-- Formulario Checkout -->
+        <div id="view-checkout" class="view bg-white p-6 rounded-2xl mt-8 shadow-lg">
+            <h3 class="font-bold mb-4">🛒 Tu Pedido</h3>
+            <ul id="cart-list" class="text-sm mb-4"><li>Carrito vacío</li></ul>
+            <p class="font-bold">Total: $<span id="total">0.00</span></p>
+            <div class="space-y-3 mt-4">
                 <input type="text" id="calle" placeholder="Calle" class="w-full p-2 border rounded">
                 <input type="text" id="numero" placeholder="Número" class="w-full p-2 border rounded">
                 <input type="text" id="colonia" placeholder="Colonia" class="w-full p-2 border rounded">
@@ -129,9 +118,10 @@
                     <option value="Efectivo">Efectivo</option>
                     <option value="Tarjeta">Tarjeta</option>
                 </select>
-                <button onclick="confirmOrder()" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold uppercase hover:bg-green-700 transition">Confirmar Pedido por WhatsApp</button>
+                <button onclick="confirmOrder()" class="w-full bg-green-600 text-white p-3 rounded-xl font-bold">Enviar WhatsApp</button>
             </div>
-        </section>
+        </div>
     </main>
+
 </body>
 </html>
